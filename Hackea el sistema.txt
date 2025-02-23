@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker Quiz</title>
+    <style>
+        body {
+            background-color: black;
+            color: lime;
+            font-family: 'Courier New', Courier, monospace;
+            text-align: center;
+        }
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            color: lime;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .hidden {
+            display: none;
+        }
+        .question-container {
+            margin: 50px auto;
+            width: 60%;
+            padding: 20px;
+            border: 2px solid lime;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        .option {
+            display: block;
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid lime;
+            background-color: black;
+            cursor: pointer;
+        }
+        .option:hover {
+            background-color: lime;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen" class="screen">
+        <h1>¿Estás listo para jugar?</h1>
+        <button onclick="startGame()">Iniciar</button>
+    </div>
+    
+    <div id="gameScreen" class="hidden">
+        <h1>Hacker Quiz</h1>
+        <div class="question-container" id="questionBox">
+            <p id="question">Cargando pregunta...</p>
+            <div id="options"></div>
+            <p id="timer">Tiempo restante: 60s</p>
+            <p id="lives">Vidas restantes: 3</p>
+        </div>
+        <audio id="hackerSound" src="hacker_sound.mp3"></audio>
+        <audio id="errorSound" src="error_sound.mp3"></audio>
+    </div>
+    
+    <div id="endScreen" class="screen hidden">
+        <h1>Para la pieza hayar, en los restos tendrás que hayas, dónde solo ramas habrá</h1>
+        <button onclick="restartGame()">Reiniciar</button>
+    </div>
+
+    <script>
+        const questions = [
+            { question: "¿En qué año se publicó Hollow Night?", options: ["2018", "2016", "2020", "2017"], answer: "2017" },
+            { question: "¿Cuál es el verdadero nombre de Dipper?", options: ["Mason", "Dipper", "niño pines", "ninguna"], answer: "Mason" },
+            { question: "¿Cómo se llama la actriz que interpreta a Ámbar?", options: ["Karol Sevilla", "Valentina Zenere", "Tini Stossel", "Karolina Kopeliof"], answer: "Valentina Zenere" },
+            { question: "¿Quién le dió el Sharingan a Kakashi?", options: ["Obito", "Naruto", "Itachi", "Gaara"], answer: "Obito" },
+            { question: "¿Cómo se llaman los papás de Harry?", options: ["Lily y James", "Alice y Frank", "Molly y Arthur"], answer: "Lily y James" },
+            { question: "¿Cómo se llama esta canción?\nTu me llegaste a enamorar\nY aunque podría negarlo una y mil veces\nYo no me voy a perdonar\nSi por nunca admitirlo tu desapareces", options: ["cuando nadie ve", "no se va", "causa perdida", "besos en guerra"], answer: "causa perdida" }
+        ];
+
+        let currentQuestionIndex = 0;
+        let lives = 3;
+        let timer;
+        let timeLeft = 60;
+
+        function startGame() {
+            document.getElementById("startScreen").classList.add("hidden");
+            document.getElementById("gameScreen").classList.remove("hidden");
+            loadQuestion();
+        }
+
+        function startTimer() {
+            timeLeft = 60;
+            document.getElementById("timer").textContent = `Tiempo restante: ${timeLeft}s`;
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").textContent = `Tiempo restante: ${timeLeft}s`;
+                if (timeLeft === 0) {
+                    loseLife();
+                }
+            }, 1000);
+        }
+
+        function loseLife() {
+            clearInterval(timer);
+            lives--;
+            document.getElementById("lives").textContent = `Vidas restantes: ${lives}`;
+            document.getElementById("errorSound").play();
+            if (lives === 0) {
+                document.getElementById("gameScreen").classList.add("hidden");
+                document.getElementById("endScreen").classList.remove("hidden");
+            } else {
+                alert("Se acabó el tiempo. Pierdes una vida.");
+                loadQuestion();
+            }
+        }
+
+        function loadQuestion() {
+            clearInterval(timer);
+            startTimer();
+            let q = questions[currentQuestionIndex];
+            document.getElementById("question").textContent = q.question;
+            let optionsDiv = document.getElementById("options");
+            optionsDiv.innerHTML = "";
+            q.options.forEach(option => {
+                let button = document.createElement("div");
+                button.textContent = option;
+                button.classList.add("option");
+                button.onclick = function() {
+                    clearInterval(timer);
+                    document.getElementById("hackerSound").play();
+                    if (option === q.answer) {
+                        alert("Correcto!");
+                        currentQuestionIndex++;
+                        if (currentQuestionIndex >= questions.length) {
+                            document.getElementById("gameScreen").classList.add("hidden");
+                            document.getElementById("endScreen").classList.remove("hidden");
+                        } else {
+                            loadQuestion();
+                        }
+                    } else {
+                        alert("Incorrecto!");
+                        loseLife();
+                    }
+                };
+                optionsDiv.appendChild(button);
+            });
+        }
+
+        function restartGame() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
